@@ -23,6 +23,8 @@ export default defineConfig(({ mode }) => ({
     cssCodeSplit: true
   },
   server: {
+    host: '0.0.0.0',  // Bind to all network interfaces
+    port: 3000,        // Set the port (you can change this as needed)
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
