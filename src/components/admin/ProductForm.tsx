@@ -41,13 +41,27 @@ export function ProductForm({ onClose, onSuccess, product }: ProductFormProps) {
       const description = formData.get('description') as string;
       const category = formData.get('category') as string;
       const minOrder = parseInt(formData.get('minOrder') as string) || 1;
-      const images = (formData.get('images') as string).split('\n').filter(Boolean);
+      const images = (formData.get('images') as string)
+        .split('\n')
+        .map(url => url.trim())
+        .filter(url => url.length > 0);
+
       const price1 = parseFloat(formData.get('price1') as string);
       const minQuantity1 = parseInt(formData.get('minQuantity1') as string);
       const maxQuantity1 = parseInt(formData.get('maxQuantity1') as string);
       
-      if (!name?.trim() || !description?.trim() || !category || !minOrder || images.length === 0) {
-        throw new Error('Please fill in all required fields');
+      // Validate required fields
+      if (!name?.trim()) {
+        throw new Error('Product name is required');
+      }
+      if (!description?.trim()) {
+        throw new Error('Product description is required');
+      }
+      if (!category) {
+        throw new Error('Category is required');
+      }
+      if (images.length === 0) {
+        throw new Error('At least one image URL is required');
       }
 
       // Validate image URLs
@@ -56,18 +70,18 @@ export function ProductForm({ onClose, onSuccess, product }: ProductFormProps) {
         throw new Error('Please enter valid image URLs (must start with http:// or https://)');
       }
       
-      if (isNaN(price1) || isNaN(minQuantity1) || isNaN(maxQuantity1)) {
-        throw new Error('Please enter valid price range values');
+      // Validate first price range
+      if (isNaN(price1) || price1 <= 0) {
+        throw new Error('Please enter a valid price for the first range');
       }
-
-      if (minQuantity1 <= 0 || maxQuantity1 <= 0 || price1 <= 0) {
-        throw new Error('Price range values must be greater than 0');
+      if (isNaN(minQuantity1) || minQuantity1 < 1) {
+        throw new Error('Minimum quantity must be at least 1');
       }
-
-      if (minQuantity1 >= maxQuantity1) {
+      if (isNaN(maxQuantity1) || maxQuantity1 <= minQuantity1) {
         throw new Error('Maximum quantity must be greater than minimum quantity');
       }
       
+      // Build price ranges array
       const priceRanges = [
         {
           minQuantity: minQuantity1,
@@ -76,48 +90,55 @@ export function ProductForm({ onClose, onSuccess, product }: ProductFormProps) {
         }
       ];
       
-      // Add second price range if provided
-      const minQuantity2 = formData.get('minQuantity2');
-      const maxQuantity2 = formData.get('maxQuantity2');
-      const price2 = formData.get('price2');
+      // Add second price range if provided and valid
+      const price2 = parseFloat(formData.get('price2') as string);
+      const minQuantity2 = parseInt(formData.get('minQuantity2') as string);
+      const maxQuantity2 = parseInt(formData.get('maxQuantity2') as string);
       
-      if (minQuantity2 && maxQuantity2 && price2) {
-        const min2 = parseInt(minQuantity2 as string);
-        const max2 = parseInt(maxQuantity2 as string);
-        const p2 = parseFloat(price2 as string);
-
-        if (!isNaN(min2) && !isNaN(max2) && !isNaN(p2) && 
-            min2 > 0 && max2 > 0 && p2 > 0 && min2 < max2) {
-          priceRanges.push({
-            minQuantity: min2,
-            maxQuantity: max2,
-            price: p2
-          });
+      if (!isNaN(price2) && !isNaN(minQuantity2) && !isNaN(maxQuantity2)) {
+        if (price2 <= 0) {
+          throw new Error('Second range price must be greater than 0');
         }
+        if (minQuantity2 <= maxQuantity1) {
+          throw new Error('Second range minimum quantity must be greater than first range maximum');
+        }
+        if (maxQuantity2 <= minQuantity2) {
+          throw new Error('Second range maximum quantity must be greater than its minimum');
+        }
+
+        priceRanges.push({
+          minQuantity: minQuantity2,
+          maxQuantity: maxQuantity2,
+          price: price2
+        });
       }
       
+      // Build product data
       const productData = {
-        name,
-        description,
+        name: name.trim(),
+        description: description.trim(),
         category,
         minOrder,
         images,
         priceRanges,
         specifications: (formData.get('specifications') as string)
           .split('\n')
-          .filter(Boolean)
+          .map(spec => spec.trim())
+          .filter(spec => spec.length > 0)
       };
 
+      // Create or update product
       if (product) {
         await updateProduct(product.id, productData);
       } else {
         const result = await createProduct(productData);
-        if (!result?.id) {
-          throw new Error('Failed to create product');
+        if (!result?.success) {
+          throw new Error('Failed to create product. Please try again.');
         }
       }
       
       onSuccess();
+      onClose();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       console.error('Form submission error:', err);

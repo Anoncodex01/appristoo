@@ -6,7 +6,7 @@ export const CONTACT_INFO = {
 export const SHIPPING_TIME = '2-3 days';
 
 export const CATEGORIES: Category[] = [
-  'BEAUTY',
-  'ELECTRONICS',
-  'HOME APPLIANCES'
+  'Groceries',
+  'Beauty',
+  'Electronics'
 ];

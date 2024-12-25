@@ -7,7 +7,7 @@ interface CategoryFilterProps {
 }
 
 export function CategoryFilter({ selectedCategory, onSelectCategory }: CategoryFilterProps) {
-  const categories = ['all', 'electronics', 'clothing', 'groceries', 'home', 'beauty'];
+  const categories = ['all', 'Groceries', 'beauty', 'Electronics'];
 
   return (
     <div className="flex flex-wrap gap-2 mb-6">

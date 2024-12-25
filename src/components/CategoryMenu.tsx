@@ -17,7 +17,7 @@ export function CategoryMenu({ selectedCategory, onSelectCategory }: CategoryMen
             className={`p-4 text-center hover:bg-purple-50 transition-colors
               ${selectedCategory === 'all' ? 'text-purple-600 border-b-2 border-purple-600' : 'text-gray-600'}`}
           >
-            ALL CATEGORIES
+            All Categories
           </button>
           {CATEGORIES.map((category) => (
             <button

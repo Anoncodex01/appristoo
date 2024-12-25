@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Product } from '../types';
 
-
 export async function fetchProducts() {
   const { data, error } = await supabase
     .from('products')
@@ -89,30 +88,35 @@ export async function fetchProductById(id: string) {
   };
 }
 
-export async function createProduct(productData: any) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error('Unauthorized');
-  
-  // Validate user role
-  const { data: roleData, error: roleError } = await supabase
-    .from('user_roles')
-    .select('role')
-    .eq('user_id', user.id)
-    .single();
-
-  if (roleError || !roleData) {
-    throw new Error('Unauthorized - Invalid user role');
-  }
-
-  if (!['ADMIN', 'EDITOR'].includes(roleData.role)) {
-    throw new Error('Unauthorized - Insufficient permissions');
-  }
-
-  const productId = crypto.randomUUID();
-  const timestamp = new Date().toISOString();
-
+export async function createProduct(productData: Omit<Product, 'id'>) {
   try {
-    // Insert product first
+    // Validate user authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('Authentication error:', authError);
+      throw new Error('You must be logged in to create products');
+    }
+
+    // Validate user role
+    const { data: roleData, error: roleError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    if (roleError) {
+      console.error('Role check error:', roleError);
+      throw new Error('Failed to verify permissions');
+    }
+
+    if (!roleData || !['ADMIN', 'EDITOR'].includes(roleData.role)) {
+      throw new Error('You do not have permission to create products');
+    }
+
+    const productId = crypto.randomUUID();
+    const timestamp = new Date().toISOString();
+
+    // Insert main product data
     const { error: productError } = await supabase
       .from('products')
       .insert({
@@ -120,82 +124,90 @@ export async function createProduct(productData: any) {
         name: productData.name,
         description: productData.description,
         category: productData.category,
-        min_order: productData.minOrder,
-        is_archived: false,
-        created_at: timestamp
-      })
-      .single();
-    
-    if (productError) throw productError;
-    
-    // Insert all related data in parallel
-    const [imagesResult, pricesResult, specsResult] = await Promise.all([
-      // Insert images
-      supabase
-      .from('product_images')
-      .insert(
-        productData.images.map((url: string, index: number) => ({
-          id: crypto.randomUUID(),
-          product_id: productId,
-          image_url: url,
-          display_order: index,
-          created_at: timestamp
-        }))
-      ),
-      // Insert price ranges
-      supabase
-      .from('price_ranges')
-      .insert(
-        productData.priceRanges.map((range: any) => ({
-          id: crypto.randomUUID(),
-          product_id: productId,
-          min_quantity: range.minQuantity,
-          max_quantity: range.maxQuantity,
-          price: range.price,
-          created_at: timestamp
-        }))
-      ),
-      // Insert specifications if any
-      productData.specifications?.length ? supabase
+        min_order: productData.minOrder || 1,
+        is_archived: false
+      });
+
+    if (productError) {
+      console.error('Product creation error:', productError);
+      throw new Error('Failed to create product: ' + productError.message);
+    }
+
+    // Insert images
+    if (productData.images?.length > 0) {
+      const { error: imagesError } = await supabase
+        .from('product_images')
+        .insert(
+          productData.images.map((url: string, index: number) => ({
+            product_id: productId,
+            image_url: url,
+            display_order: index
+          }))
+        );
+
+      if (imagesError) {
+        console.error('Image insertion error:', imagesError);
+        // Clean up the product if image insertion fails
+        await supabase.from('products').delete().eq('id', productId);
+        throw new Error('Failed to add product images: ' + imagesError.message);
+      }
+    }
+
+    // Insert price ranges
+    if (productData.priceRanges?.length > 0) {
+      const { error: pricesError } = await supabase
+        .from('price_ranges')
+        .insert(
+          productData.priceRanges.map((range: any) => ({
+            product_id: productId,
+            min_quantity: range.minQuantity,
+            max_quantity: range.maxQuantity,
+            price: range.price
+          }))
+        );
+
+      if (pricesError) {
+        console.error('Price ranges insertion error:', pricesError);
+        // Clean up the product if price range insertion fails
+        await supabase.from('products').delete().eq('id', productId);
+        throw new Error('Failed to add price ranges: ' + pricesError.message);
+      }
+    }
+
+    // Insert specifications if any
+    if (productData.specifications?.length > 0) {
+      const { error: specsError } = await supabase
         .from('product_specifications')
         .insert(
           productData.specifications.map((spec: string) => ({
-            id: crypto.randomUUID(),
             product_id: productId,
-            specification: spec,
-            created_at: timestamp
+            specification: spec
           }))
-        ) : Promise.resolve({ error: null })
-    ]);
+        );
 
-    // Check for errors
-    const errors = [
-      imagesResult.error,
-      pricesResult.error,
-      specsResult.error
-    ].filter(Boolean);
-
-    if (errors.length > 0) {
-      // If any operation failed, delete the product (this will cascade delete related data)
-      await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-      
-      throw new Error('Failed to create product: ' + errors[0]?.message);
+      if (specsError) {
+        console.error('Specifications insertion error:', specsError);
+        // Clean up the product if specification insertion fails
+        await supabase.from('products').delete().eq('id', productId);
+        throw new Error('Failed to add specifications: ' + specsError.message);
+      }
     }
 
-    return { id: productId };
+    return { id: productId, success: true };
   } catch (error) {
-    console.error('Error creating product:', error);
+    console.error('Product creation failed:', error);
     
     let errorMessage = 'Failed to create product';
-    
     if (error instanceof Error) {
       errorMessage = error.message;
-      if (error.message.includes('duplicate key')) errorMessage = 'A product with this ID already exists';
-      if (error.message.includes('permission denied')) errorMessage = 'You do not have permission to create products';
-      if (error.message.includes('violates foreign key constraint')) errorMessage = 'Invalid product data';
+      // Handle specific Supabase errors
+      if (error.message.includes('duplicate key')) {
+        errorMessage = 'A product with this ID already exists';
+      } else if (error.message.includes('permission denied')) {
+        errorMessage = 'You do not have permission to create products';
+      } else if (error.message.includes('violates foreign key constraint')) {
+        errorMessage = 'Invalid product data';
+      }
     }
     
     throw new Error(errorMessage);

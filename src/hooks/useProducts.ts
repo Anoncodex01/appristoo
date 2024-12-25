@@ -62,7 +62,7 @@ export function useProducts() {
 
       // Filter by category if selected
       if (selectedCategory !== 'all') {
-        query = query.eq('category', selectedCategory);
+        query = query.ilike('category', `%${selectedCategory}%`);
       }
       
       // Filter out archived products unless explicitly included
