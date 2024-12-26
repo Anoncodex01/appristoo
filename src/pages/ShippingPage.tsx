@@ -11,7 +11,7 @@ interface ShippingSection {
 const shippingSections: ShippingSection[] = [
   {
     title: "1. Shipping Speed",
-    content: "We offer fast, 24-hour delivery to most locations. Depending on your location, delivery may take longer, but we will always provide you with an estimated delivery time at checkout.",
+    content: `We pride ourselves on our fast delivery service. Our standard delivery time is 1-3 hours from order confirmation. We understand the importance of quick delivery and strive to get your products to you as fast as possible.`,
     icon: <Clock className="w-8 h-8 text-purple-600" />
   },
   {
@@ -20,8 +20,8 @@ const shippingSections: ShippingSection[] = [
     icon: <Package className="w-8 h-8 text-purple-600" />
   },
   {
-    title: "3. Tracking Your Order",
-    content: "Once your order is shipped, we will send you a tracking number so you can follow your package's journey from our warehouse to your doorstep.",
+    title: "3. Order Tracking",
+    content: "Once your order is dispatched, you'll receive a tracking number via email and SMS. This allows you to monitor your delivery in real-time.",
     icon: <Truck className="w-8 h-8 text-purple-600" />
   },
   {
@@ -31,7 +31,7 @@ const shippingSections: ShippingSection[] = [
   },
   {
     title: "5. Shipping Issues",
-    content: "In case of any delays or issues with your shipment, we will promptly inform you and work to resolve the matter as quickly as possible.",
+    content: "If you experience any issues with your delivery, our customer service team is available 24/7 to assist you. Please contact us immediately and we'll resolve any problems.",
     icon: <AlertCircle className="w-8 h-8 text-purple-600" />
   }
 ];

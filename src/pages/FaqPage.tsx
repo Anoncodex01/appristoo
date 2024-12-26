@@ -13,24 +13,28 @@ const faqs: FaqItem[] = [
     answer: "We offer a wide range of high-quality international products, including electronics, fashion, beauty products, home goods, health supplements, and more. All items are curated to meet our high standards for quality and value."
   },
   {
-    question: "How long will it take to receive my order?",
-    answer: "We prioritize speed and efficiency! Orders are typically delivered within 24 hours, depending on your location."
+    question: "How long does delivery take?",
+    answer: "Our standard delivery time is 1-3 hours from order confirmation for most locations. We prioritize fast delivery to ensure you receive your products as quickly as possible."
   },
   {
     question: "What shipping methods do you use?",
-    answer: "We use trusted international courier services to ensure fast and reliable delivery of your items."
+    answer: "We use reliable local courier services that specialize in fast, same-day deliveries. This ensures your products arrive quickly and safely."
   },
   {
-    question: "Do you deliver to all African countries?",
+    question: "Do you deliver to my country?",
     answer: "Yes, we currently deliver to a wide range of African countries. Please check our shipping page for specific locations."
   },
   {
-    question: "How can I track my order?",
-    answer: "Once your order is shipped, you will receive a tracking number to monitor the status of your delivery."
+    question: "How do I track my order?",
+    answer: "Once your order is dispatched, you'll receive a tracking number via email and SMS. You can use this to track your delivery in real-time."
   },
   {
-    question: "Can I return or exchange my items?",
+    question: "What is your return policy?",
     answer: "We offer returns and exchanges within 14 days of receipt, provided the items are in original condition. Please refer to our Returns & Exchanges policy for more details."
+  },
+  {
+    question: "How do I contact customer service?",
+    answer: "You can reach our customer service team 24/7 through WhatsApp, phone, or email. We typically respond within minutes to ensure you get the help you need quickly."
   },
   {
     question: "Is my personal information safe with you?",
