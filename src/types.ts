@@ -1,4 +1,7 @@
+// Currently active categories
 export type Category = typeof import('./config/constants').CATEGORIES[number];
+// Full list of categories (including hidden ones)
+// export type Category = 'Groceries' | 'Beauty' | 'Electronics';
 
 export interface Product {
   id: string;

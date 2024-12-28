@@ -5,5 +5,11 @@ export const CONTACT_INFO = {
 
 export const SHIPPING_TIME = '1-3 hours';
 
-export const CATEGORIES = ['Groceries', 'Beauty', 'Electronics'] as const;
+export const CATEGORIES = [
+  'Groceries',
+  // Temporarily hidden categories
+  // 'Beauty',
+  // 'Electronics'
+] as const;
+
 export const CURRENCY = 'TZS';
