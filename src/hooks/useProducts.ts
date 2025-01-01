@@ -29,6 +29,7 @@ export async function getCategoryProductCounts() {
     return {};
   }
 }
+
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,59 +51,76 @@ export function useProducts() {
           category,
           min_order,
           is_archived,
-          price_ranges (min_quantity, max_quantity, price),
-          product_images (image_url),
-          product_specifications (specification)
-        `, { count: 'exact' });
+          product_images (
+            image_url,
+            display_order
+          ),
+          price_ranges (
+            min_quantity,
+            max_quantity,
+            price
+          ),
+          product_specifications (
+            specification
+          )
+        `, { count: 'exact' })
+        .eq('is_archived', false)
+        .range(
+          (currentPage - 1) * PRODUCTS_PER_PAGE,
+          currentPage * PRODUCTS_PER_PAGE - 1
+        )
+        .order('created_at', { ascending: false });
 
-      // Apply search filter if query exists
-      if (searchQuery) {
-        query = query.or(`name.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%`);
-      } 
-
-      // Filter by category if selected
       if (selectedCategory !== 'all') {
-        query = query.ilike('category', `%${selectedCategory}%`);
+        query = query.eq('category', selectedCategory);
+      }
+
+      if (searchQuery) {
+        query = query.ilike('name', `%${searchQuery}%`);
+      }
+
+      const { data, error: fetchError, count } = await query;
+
+      if (fetchError) throw fetchError;
+
+      const formattedProducts = formatProducts(data || []);
+      
+      // For infinite scroll, append new products instead of replacing
+      if (currentPage === 1) {
+        setProducts(formattedProducts);
+      } else {
+        setProducts(prev => [...prev, ...formattedProducts]);
       }
       
-      // Filter out archived products unless explicitly included
-      query = query.eq('is_archived', false);
-      
-      // Get paginated results
-      const { data, count, error } = await query
-        .order('created_at', { ascending: false })
-        .range((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE - 1);
-      
-      if (error) throw error;
-      setProducts(formatProducts(data || []));
-      setTotalCount(count || 0);
+      if (count !== null) {
+        setTotalCount(count);
+      }
       setError(null);
-    } catch (err) {
-      console.error('Error loading products:', err);
-      setError('Failed to load products. Please try again.');
-      setProducts([]);
-      setTotalCount(0);
+    } catch (error) {
+      console.error('Error loading products:', error);
+      setError('Failed to load products');
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, currentPage, selectedCategory]);
+  }, [currentPage, selectedCategory, searchQuery]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
+  const totalPages = Math.ceil(totalCount / PRODUCTS_PER_PAGE);
+
   return {
     products,
     loading,
     error,
-    totalPages: Math.max(1, Math.ceil(totalCount / PRODUCTS_PER_PAGE)),
+    totalPages,
     currentPage,
     setCurrentPage,
-    searchQuery,
-    setSearchQuery,
     selectedCategory,
     setSelectedCategory,
-    reloadProducts: loadProducts
+    searchQuery,
+    setSearchQuery
   };
 }
 
