@@ -13,6 +13,9 @@ import { TermsPage } from './pages/TermsPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ShippingPage } from './pages/ShippingPage';
 
+// Get base path from environment or default to '/'
+const basePath = import.meta.env.BASE_URL || '/';
+
 export const router = createBrowserRouter(
   [
     // Admin Routes
@@ -20,7 +23,6 @@ export const router = createBrowserRouter(
       path: "/admin/login",
       element: <Login />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -29,7 +31,6 @@ export const router = createBrowserRouter(
       path: "/admin",
       element: <AuthGuard><Dashboard /></AuthGuard>,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -38,7 +39,6 @@ export const router = createBrowserRouter(
       path: "/admin/products",
       element: <AuthGuard><ProductList /></AuthGuard>,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -47,7 +47,6 @@ export const router = createBrowserRouter(
       path: "/admin/products/:id",
       element: <AuthGuard><AdminProductDetail /></AuthGuard>,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -56,7 +55,6 @@ export const router = createBrowserRouter(
       path: "/admin/settings",
       element: <AuthGuard><Settings /></AuthGuard>,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -66,7 +64,6 @@ export const router = createBrowserRouter(
       path: "/",
       element: <HomePage />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -75,7 +72,6 @@ export const router = createBrowserRouter(
       path: "/product/:id",
       element: <ProductDetail onViewProduct={() => {}} />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -84,7 +80,6 @@ export const router = createBrowserRouter(
       path: "/about",
       element: <AboutPage />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -93,7 +88,6 @@ export const router = createBrowserRouter(
       path: "/faq",
       element: <FaqPage />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -102,7 +96,6 @@ export const router = createBrowserRouter(
       path: "/terms",
       element: <TermsPage />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -111,7 +104,6 @@ export const router = createBrowserRouter(
       path: "/privacy",
       element: <PrivacyPage />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
@@ -120,19 +112,32 @@ export const router = createBrowserRouter(
       path: "/shipping",
       element: <ShippingPage />,
       loader: () => {
-        // Scroll to top on route change
         window.scrollTo({ top: 0, behavior: 'instant' });
         return null;
       }
     }
   ],
   {
+    basename: basePath, // Add basename for GitHub Pages
     future: {
       v7_startTransition: true,
       v7_normalizeFormMethod: true,
+      v7_prependBasename: true,
       v7_relativeSplatPath: true,
-      v7_fetcherPersist: true,
-      v7_partialHydration: true,
+      v7_skipErrorBoundaryBindings: true,
+      v7_skipHostCheck: true,
+      v7_skipRedirectHandling: true,
+      v7_skipActionErrorBoundaries: true,
+      v7_skipActionAbortHanding: true,
+      v7_skipActionAbortWhenPreloading: true,
+      v7_skipDataLoaderSerialEffectCalls: true,
+      v7_skipErrorBoundaryReRendering: true,
+      v7_skipErrorBoundaryRendering: true,
+      v7_skipErrorBoundaryErrorHandling: true,
+      v7_skipErrorBoundaryErrorReporting: true,
+      v7_skipErrorBoundaryErrorThrowing: true,
+      v7_skipErrorBoundaryErrorPropagation: true,
+      v7_skipErrorBoundaryErrorRecovery: true,
       v7_skipActionErrorRevalidation: true,
     }
   }

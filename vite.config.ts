@@ -2,13 +2,21 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import viteCompression from 'vite-plugin-compression';
 
+// Get the repository name from package.json
+const pkg = require('./package.json');
+const repoName = pkg.homepage.split('/').pop();
+
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     viteCompression({ algorithm: 'gzip' }),
     viteCompression({ algorithm: 'brotliCompress', ext: '.br' })
   ],
+  base: process.env.NODE_ENV === 'production' ? `/${repoName}/` : '/',
   build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -25,6 +33,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '0.0.0.0',  // Bind to all network interfaces
     port: 3000,        // Set the port (you can change this as needed)
+    open: true,
     headers: {
       'Content-Security-Policy': `
         default-src 'self';
