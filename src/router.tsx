@@ -13,9 +13,6 @@ import { TermsPage } from './pages/TermsPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { ShippingPage } from './pages/ShippingPage';
 
-// Get base path from environment or default to '/'
-const basePath = import.meta.env.BASE_URL || '/';
-
 export const router = createBrowserRouter(
   [
     // Admin Routes
@@ -118,11 +115,9 @@ export const router = createBrowserRouter(
     }
   ],
   {
-    basename: basePath, // Add basename for GitHub Pages
     future: {
       v7_startTransition: true,
       v7_normalizeFormMethod: true,
-      v7_prependBasename: true,
       v7_relativeSplatPath: true,
       v7_skipErrorBoundaryBindings: true,
       v7_skipHostCheck: true,
