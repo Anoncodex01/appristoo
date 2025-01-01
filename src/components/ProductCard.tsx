@@ -17,18 +17,20 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const handleCall = (e: React.MouseEvent) => {
     e.stopPropagation();
-    window.location.href = `tel:${CONTACT_INFO.phone}`;
+    const phoneNumber = CONTACT_INFO.phone.replace(/\s+/g, '');
+    window.open(`tel:${phoneNumber}`, '_self');
   };
 
   const handleMessage = (e: React.MouseEvent) => {
     e.stopPropagation();
+    const whatsappNumber = CONTACT_INFO.whatsapp.replace(/\s+/g, '');
     const message = encodeURIComponent(
       `Hi, I'm interested in purchasing:\n\n` +
       `Product: ${product.name}\n` +
       `ID: ${product.id}\n\n` +
       `Please provide more information about pricing and availability.`
     );
-    window.location.href = `https://wa.me/${CONTACT_INFO.whatsapp}?text=${message}`;
+    window.open(`https://wa.me/${whatsappNumber}?text=${message}`, '_blank');
   };
 
   const handleClick = () => {
@@ -38,10 +40,10 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <div 
+      onClick={handleClick}
       className="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden h-[300px] sm:h-[420px] mb-4 sm:mb-0 max-w-[320px] mx-auto group"
     >
       <div 
-        onClick={handleClick}
         className="relative h-[140px] sm:h-[250px] overflow-hidden"
       >
         <ImageOptimizer
@@ -57,8 +59,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
       <div 
-        onClick={handleClick}
-        className="p-3 sm:p-4 flex flex-col justify-between h-[160px] sm:h-[170px] cursor-pointer"
+        className="p-3 sm:p-4 flex flex-col justify-between h-[160px] sm:h-[170px]"
       >
         <div>
           <h3 className="text-sm sm:text-lg font-medium line-clamp-2 mb-1 group-hover:text-purple-600 transition-colors">
@@ -77,20 +78,14 @@ export function ProductCard({ product }: ProductCardProps) {
 
           <div className="flex gap-2">
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCall();
-              }}
+              onClick={handleCall}
               className="flex-1 flex items-center justify-center gap-1 sm:gap-2 bg-purple-600 text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-purple-700 transition-colors text-xs sm:text-sm"
             >
               <Phone className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Call</span>
             </button>
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleMessage();
-              }}
+              onClick={handleMessage}
               className="flex-1 flex items-center justify-center gap-1 sm:gap-2 bg-[#25D366] text-white px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-[#22c55e] transition-colors text-xs sm:text-sm"
             >
               <WhatsAppIcon className="w-3 h-3 sm:w-4 sm:h-4" />
