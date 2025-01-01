@@ -1,8 +1,7 @@
 import React from 'react';
-import { BrowserRouter, RouterProvider } from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom';
 import { router } from './router';
 import { useRecentProducts } from './hooks/useRecentProducts';
-import { ScrollToTop } from './components/ScrollToTop';
 
 export function App() {
   const { addRecentProduct } = useRecentProducts();
@@ -23,12 +22,7 @@ export function App() {
     })
   };
 
-  return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <RouterProvider router={updatedRouter as typeof router} />
-    </BrowserRouter>
-  );
+  return <RouterProvider router={updatedRouter as typeof router} />;
 }
 
 export default App;

@@ -18,52 +18,112 @@ export const router = createBrowserRouter(
     // Admin Routes
     {
       path: "/admin/login",
-      element: <Login />
+      element: <Login />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/admin",
-      element: <AuthGuard><Dashboard /></AuthGuard>
+      element: <AuthGuard><Dashboard /></AuthGuard>,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/admin/products",
-      element: <AuthGuard><ProductList /></AuthGuard>
+      element: <AuthGuard><ProductList /></AuthGuard>,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/admin/products/:id",
-      element: <AuthGuard><AdminProductDetail /></AuthGuard>
+      element: <AuthGuard><AdminProductDetail /></AuthGuard>,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/admin/settings",
-      element: <AuthGuard><Settings /></AuthGuard>
+      element: <AuthGuard><Settings /></AuthGuard>,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     // Public Routes
     {
       path: "/",
-      element: <HomePage />
+      element: <HomePage />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/product/:id",
-      element: <ProductDetail onViewProduct={() => {}} />
+      element: <ProductDetail onViewProduct={() => {}} />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/about",
-      element: <AboutPage />
+      element: <AboutPage />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/faq",
-      element: <FaqPage />
+      element: <FaqPage />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/terms",
-      element: <TermsPage />
+      element: <TermsPage />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/privacy",
-      element: <PrivacyPage />
+      element: <PrivacyPage />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     },
     {
       path: "/shipping",
-      element: <ShippingPage />
+      element: <ShippingPage />,
+      loader: () => {
+        // Scroll to top on route change
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        return null;
+      }
     }
   ],
   {
