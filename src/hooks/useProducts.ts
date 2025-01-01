@@ -32,16 +32,21 @@ export async function getCategoryProductCounts() {
 
 export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
+  const [hasMore, setHasMore] = useState(true);
 
   const loadProducts = useCallback(async () => {
+    if (loading) return;
+    
     try {
       setLoading(true);
+      setError(null);
+
       let query = supabase
         .from('products')
         .select(`
@@ -94,11 +99,13 @@ export function useProducts() {
       
       if (count !== null) {
         setTotalCount(count);
+        // Check if we've loaded all products
+        setHasMore((currentPage * PRODUCTS_PER_PAGE) < count);
       }
-      setError(null);
     } catch (error) {
       console.error('Error loading products:', error);
       setError('Failed to load products');
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
@@ -108,19 +115,26 @@ export function useProducts() {
     loadProducts();
   }, [loadProducts]);
 
-  const totalPages = Math.ceil(totalCount / PRODUCTS_PER_PAGE);
+  // Reset products when category or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setProducts([]);
+    setHasMore(true);
+    setError(null);
+  }, [selectedCategory, searchQuery]);
 
   return {
     products,
     loading,
     error,
-    totalPages,
+    totalCount,
     currentPage,
     setCurrentPage,
+    searchQuery,
+    setSearchQuery,
     selectedCategory,
     setSelectedCategory,
-    searchQuery,
-    setSearchQuery
+    hasMore
   };
 }
 

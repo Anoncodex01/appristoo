@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import { Clock, Phone, ChevronLeft } from 'lucide-react';
@@ -12,20 +12,13 @@ export function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { product, loading } = useProduct(id);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
-    // Force scroll to top immediately when component mounts
     window.scrollTo({ top: 0, behavior: 'instant' });
-    
-    // Also handle when product data loads
-    if (product) {
-      window.scrollTo({ top: 0, behavior: 'instant' });
-    }
-  }, [product]); // Run when product data changes too
+  }, []);
 
   const handleBack = () => {
-    // Scroll to previous position before going back
-    window.scrollTo({ top: 0, behavior: 'instant' });
     navigate(-1);
   };
 
@@ -41,14 +34,28 @@ export function ProductDetail() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="animate-pulse">
-          <div className="h-[300px] sm:h-[400px] bg-gray-200 rounded-lg mb-4" />
-          <div className="h-8 bg-gray-200 rounded w-3/4 mb-4" />
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8" />
-          <div className="space-y-2">
-            <div className="h-4 bg-gray-200 rounded w-full" />
-            <div className="h-4 bg-gray-200 rounded w-5/6" />
-            <div className="h-4 bg-gray-200 rounded w-4/6" />
+        <div className="container mx-auto px-4 py-6">
+          <div className="animate-pulse">
+            <div className="h-6 w-24 bg-gray-200 rounded mb-8" /> {/* Back button */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="aspect-square bg-gray-200 rounded-2xl" />
+                <div className="grid grid-cols-4 gap-4">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="aspect-square bg-gray-200 rounded-lg" />
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-6">
+                <div className="h-8 bg-gray-200 rounded w-3/4" />
+                <div className="h-6 bg-gray-200 rounded w-1/2" />
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="h-4 bg-gray-200 rounded w-full" />
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </MainLayout>
@@ -58,8 +65,16 @@ export function ProductDetail() {
   if (!product) {
     return (
       <MainLayout>
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-semibold text-gray-900">Product not found</h2>
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center">
+            <h2 className="text-2xl font-semibold text-gray-900">Product not found</h2>
+            <button
+              onClick={handleBack}
+              className="mt-4 text-purple-600 hover:text-purple-700 font-medium"
+            >
+              Go back
+            </button>
+          </div>
         </div>
       </MainLayout>
     );
@@ -71,25 +86,49 @@ export function ProductDetail() {
         {/* Back button */}
         <button
           onClick={handleBack}
-          className="flex items-center text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="flex items-center text-gray-600 hover:text-gray-900 mb-8 transition-colors group"
         >
-          <ChevronLeft className="w-5 h-5 mr-1" />
+          <ChevronLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
           <span>Back</span>
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Image Section */}
-          <div className="relative overflow-hidden rounded-2xl bg-gray-100">
-            <div className="aspect-square">
+          <div className="space-y-4">
+            {/* Main Image */}
+            <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden group">
               <ImageOptimizer
-                src={product.images?.[0] ?? ''}
+                src={product.images?.[selectedImageIndex] ?? ''}
                 alt={product.name}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
               />
+              {product.price_ranges?.[0]?.price && (
+                <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-full text-lg font-medium">
+                  {formatPrice(product.price_ranges[0].price)}
+                </div>
+              )}
             </div>
-            {product.price_ranges?.[0]?.price && (
-              <div className="absolute top-4 right-4 bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-full text-lg font-medium">
-                {formatPrice(product.price_ranges[0].price)}
+
+            {/* Thumbnail Images */}
+            {product.images && product.images.length > 1 && (
+              <div className="grid grid-cols-4 gap-4">
+                {product.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className={`relative aspect-square rounded-lg overflow-hidden ${
+                      selectedImageIndex === index
+                        ? 'ring-2 ring-purple-600 ring-offset-2'
+                        : 'hover:ring-2 hover:ring-purple-400 hover:ring-offset-2'
+                    }`}
+                  >
+                    <ImageOptimizer
+                      src={image}
+                      alt={`${product.name} - Image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -115,9 +154,9 @@ export function ProductDetail() {
                 <h2 className="text-xl font-semibold mb-4">Specifications</h2>
                 <ul className="space-y-2">
                   {product.specifications.map((spec, index) => (
-                    <li key={index} className="flex items-center text-gray-600">
-                      <span className="w-2 h-2 bg-purple-600 rounded-full mr-2" />
-                      {spec}
+                    <li key={index} className="flex items-start text-gray-600">
+                      <span className="w-2 h-2 mt-2 bg-purple-600 rounded-full mr-2 flex-shrink-0" />
+                      <span>{spec}</span>
                     </li>
                   ))}
                 </ul>
@@ -125,7 +164,7 @@ export function ProductDetail() {
             )}
 
             {/* Action Buttons */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg lg:relative lg:p-0 lg:shadow-none border-t lg:border-0">
+            <div className="fixed bottom-0 left-0 right-0 bg-white p-4 shadow-lg lg:relative lg:p-0 lg:shadow-none border-t lg:border-0 z-10">
               <div className="flex gap-4 max-w-lg mx-auto lg:mx-0">
                 <button
                   onClick={handleCall}
