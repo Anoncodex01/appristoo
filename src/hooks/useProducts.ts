@@ -6,7 +6,7 @@ import { fetchProductById } from '../api/products';
 import { getDataProvider } from '../lib/database/connection';
 import type { Category } from '../types';
 
-const PRODUCTS_PER_PAGE = 16;
+const PRODUCTS_PER_PAGE = 12; // Reduced for smoother loading
 
 export async function getCategoryProductCounts() {
   try {
@@ -47,6 +47,9 @@ export function useProducts() {
       setLoading(true);
       setError(null);
 
+      const startRange = (currentPage - 1) * PRODUCTS_PER_PAGE;
+      const endRange = currentPage * PRODUCTS_PER_PAGE - 1;
+
       let query = supabase
         .from('products')
         .select(`
@@ -70,10 +73,7 @@ export function useProducts() {
           )
         `, { count: 'exact' })
         .eq('is_archived', false)
-        .range(
-          (currentPage - 1) * PRODUCTS_PER_PAGE,
-          currentPage * PRODUCTS_PER_PAGE - 1
-        )
+        .range(startRange, endRange)
         .order('created_at', { ascending: false });
 
       if (selectedCategory !== 'all') {
@@ -86,21 +86,34 @@ export function useProducts() {
 
       const { data, error: fetchError, count } = await query;
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Supabase error:', fetchError);
+        throw fetchError;
+      }
 
-      const formattedProducts = formatProducts(data || []);
+      if (!data) {
+        console.error('No data received from Supabase');
+        throw new Error('No data received');
+      }
+
+      const formattedProducts = formatProducts(data);
       
-      // For infinite scroll, append new products instead of replacing
       if (currentPage === 1) {
         setProducts(formattedProducts);
       } else {
-        setProducts(prev => [...prev, ...formattedProducts]);
+        setProducts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newProducts = formattedProducts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newProducts];
+        });
       }
-      
+
       if (count !== null) {
         setTotalCount(count);
-        // Check if we've loaded all products
-        setHasMore((currentPage * PRODUCTS_PER_PAGE) < count);
+        const remainingItems = count - (startRange + formattedProducts.length);
+        setHasMore(remainingItems > 0);
+      } else {
+        setHasMore(formattedProducts.length === PRODUCTS_PER_PAGE);
       }
     } catch (error) {
       console.error('Error loading products:', error);
@@ -111,11 +124,12 @@ export function useProducts() {
     }
   }, [currentPage, selectedCategory, searchQuery]);
 
+  // Initial load and pagination
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
-  // Reset products when category or search changes
+  // Reset state when category or search changes
   useEffect(() => {
     setCurrentPage(1);
     setProducts([]);
@@ -149,19 +163,17 @@ export function useProduct(id: string) {
       const data = await fetchProductById(id);
       setProduct(data);
       setError(null);
-    } catch (err) {
+    } catch (error) {
+      console.error('Error loading product:', error);
       setError('Failed to load product');
-      console.error('Error loading product:', err);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    if (id) {
-      loadProduct();
-    }
+    loadProduct();
   }, [id]);
 
-  return { product, loading, error, reloadProduct: loadProduct };
+  return { product, loading, error };
 }

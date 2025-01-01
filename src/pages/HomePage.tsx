@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import InfiniteAjaxScroll from '@webcreate/infinite-ajax-scroll';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { MainLayout } from '../layouts/MainLayout';
 import { CategoryMenu } from '../components/CategoryMenu';
 import { ProductCard } from '../components/ProductCard';
@@ -9,9 +8,7 @@ import { useProducts } from '../hooks/useProducts';
 
 export function HomePage() {
   const { recentProducts } = useRecentProducts();
-  const containerRef = useRef<HTMLDivElement>(null);
   const loaderRef = useRef<HTMLDivElement>(null);
-  const iasRef = useRef<InfiniteAjaxScroll | null>(null);
   const [isLastPage, setIsLastPage] = useState(false);
 
   const {
@@ -25,96 +22,45 @@ export function HomePage() {
     setSelectedCategory,
   } = useProducts();
 
-  // Initialize Infinite Ajax Scroll
+  // Handle intersection observer
+  const handleObserver = useCallback((entries: IntersectionObserverEntry[]) => {
+    const [target] = entries;
+    if (target.isIntersecting && hasMore && !loading) {
+      setCurrentPage(prev => prev + 1);
+    }
+  }, [hasMore, loading, setCurrentPage]);
+
+  // Set up intersection observer
   useEffect(() => {
-    let ias: InfiniteAjaxScroll | null = null;
-
-    const initializeIAS = () => {
-      if (!containerRef.current || !loaderRef.current) return;
-
-      // Ensure there are items before initializing
-      const items = containerRef.current.querySelectorAll('.product-item');
-      if (items.length === 0 && !loading) return;
-
-      ias = new InfiniteAjaxScroll(containerRef.current, {
-        item: '.product-item',
-        next: () => new Promise((resolve) => {
-          if (hasMore && !loading) {
-            setCurrentPage((prev) => prev + 1);
-            resolve(true);
-          } else {
-            resolve(false);
-          }
-        }),
-        spinner: loaderRef.current,
-        delay: 600,
-        bind: false,
-        loadOnScroll: true,
-        logger: false,
-        pagination: false
-      });
-
-      ias.on('last', () => setIsLastPage(true));
-      iasRef.current = ias;
+    const options = {
+      root: null,
+      rootMargin: '20px',
+      threshold: 0.1
     };
 
-    // Initialize after a short delay to ensure DOM is ready
-    const timer = setTimeout(initializeIAS, 100);
+    const observer = new IntersectionObserver(handleObserver, options);
+    if (loaderRef.current) {
+      observer.observe(loaderRef.current);
+    }
 
     return () => {
-      clearTimeout(timer);
-      if (iasRef.current) {
-        iasRef.current.unbind();
-        iasRef.current = null;
+      if (loaderRef.current) {
+        observer.unobserve(loaderRef.current);
       }
     };
-  }, []);
+  }, [handleObserver]);
 
-  // Bind/unbind IAS when products or hasMore changes
+  // Update last page status
   useEffect(() => {
-    if (!products.length) return;
-
-    const timer = setTimeout(() => {
-      if (!iasRef.current && containerRef.current && loaderRef.current) {
-        // Re-initialize if not exists
-        const ias = new InfiniteAjaxScroll(containerRef.current, {
-          item: '.product-item',
-          next: () => new Promise((resolve) => {
-            if (hasMore && !loading) {
-              setCurrentPage((prev) => prev + 1);
-              resolve(true);
-            } else {
-              resolve(false);
-            }
-          }),
-          spinner: loaderRef.current,
-          delay: 600,
-          bind: false,
-          loadOnScroll: true,
-          logger: false,
-          pagination: false
-        });
-
-        ias.on('last', () => setIsLastPage(true));
-        iasRef.current = ias;
-      }
-
-      if (iasRef.current) {
-        iasRef.current.unbind();
-        if (hasMore) {
-          iasRef.current.bind();
-        }
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [products, hasMore]);
+    if (!hasMore && !loading) {
+      setIsLastPage(true);
+    } else if (hasMore) {
+      setIsLastPage(false);
+    }
+  }, [hasMore, loading]);
 
   // Handle category changes
   const handleCategoryChange = (category: string) => {
-    if (iasRef.current) {
-      iasRef.current.unbind();
-    }
     setSelectedCategory(category);
     setIsLastPage(false);
   };
@@ -129,41 +75,48 @@ export function HomePage() {
         <h2 className="text-2xl font-semibold mb-4">
           {selectedCategory === 'all' ? 'All Products' : `${selectedCategory} Products`}
         </h2>
-        {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">Failed to load products</div>}
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">
+            Failed to load products. Please try refreshing the page.
+          </div>
+        )}
         
         <div className="min-h-screen">
-          <div ref={containerRef} className="relative">
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
-              {loading && !products.length ? (
-                Array.from({ length: 10 }).map((_, index) => (
-                  <div key={index} className="animate-pulse h-[300px] sm:h-[420px] bg-white rounded-xl overflow-hidden">
-                    <div className="h-[140px] sm:h-[250px] bg-gray-200" />
-                    <div className="p-3 sm:p-4 space-y-3">
-                      <div className="h-4 bg-gray-200 rounded w-3/4" />
-                      <div className="h-4 bg-gray-200 rounded w-1/2" />
-                      <div className="h-4 bg-gray-200 rounded w-2/3" />
-                    </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+            {loading && !products.length ? (
+              Array.from({ length: 8 }).map((_, index) => (
+                <div key={index} className="animate-pulse h-[300px] sm:h-[420px] bg-white rounded-xl overflow-hidden">
+                  <div className="h-[140px] sm:h-[250px] bg-gray-200" />
+                  <div className="p-3 sm:p-4 space-y-3">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-4 bg-gray-200 rounded w-1/2" />
+                    <div className="h-4 bg-gray-200 rounded w-2/3" />
                   </div>
-                ))
-              ) : (
-                products.map((product) => (
-                  <div key={product.id} className="product-item">
-                    <ProductCard product={product} />
-                  </div>
-                ))
-              )}
-            </div>
-            
-            <div ref={loaderRef} className="loader h-20 flex items-center justify-center">
-              {loading && products.length > 0 && !isLastPage && (
-                <img
-                  src="/infinite.svg"
-                  alt="Loading more products..."
-                  className="w-8 h-8 animate-spin"
-                />
-              )}
-            </div>
+                </div>
+              ))
+            ) : (
+              products.map((product) => (
+                <div key={product.id} className="product-item">
+                  <ProductCard product={product} />
+                </div>
+              ))
+            )}
           </div>
+          
+          <div 
+            ref={loaderRef} 
+            className={`loader h-20 flex items-center justify-center ${!hasMore && 'hidden'}`}
+          >
+            {loading && !isLastPage && (
+              <div className="loading-spinner" />
+            )}
+          </div>
+
+          {isLastPage && products.length > 0 && (
+            <div className="text-center py-8 text-gray-500">
+              No more products to load
+            </div>
+          )}
         </div>
 
         {recentProducts.length > 0 && (
@@ -173,6 +126,22 @@ export function HomePage() {
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        .loading-spinner {
+          width: 30px;
+          height: 30px;
+          border: 3px solid #f3f3f3;
+          border-top: 3px solid #631D63;
+          border-radius: 50%;
+          animation: spin 0.6s linear infinite;
+        }
+        
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </MainLayout>
   );
 }
