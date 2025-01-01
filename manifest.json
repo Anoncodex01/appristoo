@@ -1,0 +1,30 @@
+{
+  "_browser.59e04e38.js": {
+    "file": "assets/browser.59e04e38.js",
+    "imports": [
+      "_vendor.9239ca42.js"
+    ],
+    "isDynamicEntry": true
+  },
+  "_vendor.9239ca42.js": {
+    "dynamicImports": [
+      "_browser.59e04e38.js"
+    ],
+    "file": "assets/vendor.9239ca42.js"
+  },
+  "index.css": {
+    "file": "assets/index.7bd05fcd.css",
+    "src": "index.css"
+  },
+  "index.html": {
+    "css": [
+      "assets/index.7bd05fcd.css"
+    ],
+    "file": "assets/index.06fa8b32.js",
+    "imports": [
+      "_vendor.9239ca42.js"
+    ],
+    "isEntry": true,
+    "src": "index.html"
+  }
+}
